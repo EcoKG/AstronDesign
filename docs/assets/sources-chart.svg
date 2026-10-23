@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="760" height="300" viewBox="0 0 760 300" role="img" aria-labelledby="t d">
+	<title id="t">묶은 원본 4종의 vendor 파일 수</title>
+	<desc id="d">awesome-design-md 86개(MIT, 브랜드 DESIGN.md 84개), impeccable 48개(Apache-2.0), UI UX Pro Max 47개(MIT), taste-skill 28개(MIT). 합계 209개, 해시 목록 vendor/SOURCES.json 별도.</desc>
+	<style>
+		.bg { fill: #fcfcfb; }
+		.bar { fill: #2a78d6; }
+		.grid { stroke: #e4e3df; stroke-width: 1; }
+		.axis { stroke: #b9b8b2; stroke-width: 1; }
+		.h { fill: #0b0b0b; font: 600 17px 'Pretendard', 'Noto Sans KR', 'Malgun Gothic', system-ui, sans-serif; }
+		.name { fill: #0b0b0b; font: 600 14px 'Pretendard', 'Noto Sans KR', 'Malgun Gothic', system-ui, sans-serif; }
+		.sub { fill: #52514e; font: 12px 'Pretendard', 'Noto Sans KR', 'Malgun Gothic', system-ui, sans-serif; }
+		.val { fill: #0b0b0b; font: 600 13px ui-sans-serif, system-ui, sans-serif; }
+		.tick { fill: #52514e; font: 11px ui-sans-serif, system-ui, sans-serif; }
+		@media (prefers-color-scheme: dark) {
+			.bg { fill: #1a1a19; }
+			.bar { fill: #3987e5; }
+			.grid { stroke: #2e2e2b; }
+			.axis { stroke: #55554f; }
+			.h, .name, .val { fill: #f0efec; }
+			.sub, .tick { fill: #c3c2b7; }
+		}
+	</style>
+	<rect class="bg" width="760" height="300" rx="12"/>
+	<text class="h" x="24" y="36">묶은 원본 4종 · vendor/ 파일 수</text>
+	<text class="sub" x="24" y="56">원본은 수정 없이 포함, 파일별 SHA-256 은 vendor/SOURCES.json</text>
+	<g>
+		<line class="grid" x1="355" y1="76" x2="355" y2="258"/>
+		<line class="grid" x1="450" y1="76" x2="450" y2="258"/>
+		<line class="grid" x1="545" y1="76" x2="545" y2="258"/>
+		<line class="grid" x1="640" y1="76" x2="640" y2="258"/>
+		<line class="axis" x1="260" y1="76" x2="260" y2="258"/>
+		<text class="tick" x="260" y="276" text-anchor="middle">0</text>
+		<text class="tick" x="355" y="276" text-anchor="middle">20</text>
+		<text class="tick" x="450" y="276" text-anchor="middle">40</text>
+		<text class="tick" x="545" y="276" text-anchor="middle">60</text>
+		<text class="tick" x="640" y="276" text-anchor="middle">80</text>
+	</g>
+	<g>
+		<text class="name" x="24" y="98">awesome-design-md</text>
+		<text class="sub" x="24" y="115">MIT · 브랜드 DESIGN.md 84</text>
+		<path class="bar" d="M260 86 h404.5 a4 4 0 0 1 4 4 v20 a4 4 0 0 1 -4 4 h-404.5 z"/>
+		<text class="val" x="676" y="105">86</text>
+	</g>
+	<g>
+		<text class="name" x="24" y="144">impeccable</text>
+		<text class="sub" x="24" y="161">Apache-2.0 · LICENSE·NOTICE 보존</text>
+		<path class="bar" d="M260 132 h224 a4 4 0 0 1 4 4 v20 a4 4 0 0 1 -4 4 h-224 z"/>
+		<text class="val" x="496" y="151">48</text>
+	</g>
+	<g>
+		<text class="name" x="24" y="190">UI UX Pro Max</text>
+		<text class="sub" x="24" y="207">MIT · CSV 데이터·검색기</text>
+		<path class="bar" d="M260 178 h219.3 a4 4 0 0 1 4 4 v20 a4 4 0 0 1 -4 4 h-219.3 z"/>
+		<text class="val" x="491" y="197">47</text>
+	</g>
+	<g>
+		<text class="name" x="24" y="236">taste-skill</text>
+		<text class="sub" x="24" y="253">MIT · draw·lint·측정 함수</text>
+		<path class="bar" d="M260 224 h129 a4 4 0 0 1 4 4 v20 a4 4 0 0 1 -4 4 h-129 z"/>
+		<text class="val" x="401" y="243">28</text>
+	</g>
+</svg>

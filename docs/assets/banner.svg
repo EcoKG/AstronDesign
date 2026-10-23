@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="320" viewBox="0 0 1200 320" role="img" aria-labelledby="t d">
+	<title id="t">AstronDesign</title>
+	<desc id="d">웹 UI/UX 디자인 하네스 MCP 서버. 규칙·정적 검사·실제 렌더·요소 피드백을 도구 6개로 제공.</desc>
+	<style>
+		.title { fill: #f4f1ea; font: 700 64px 'Pretendard', 'Noto Sans KR', 'Malgun Gothic', system-ui, sans-serif; letter-spacing: -1.5px; }
+		.lead { fill: #c9c4b8; font: 400 22px 'Pretendard', 'Noto Sans KR', 'Malgun Gothic', system-ui, sans-serif; }
+		.chip { fill: #1d2a33; stroke: #33505f; stroke-width: 1; }
+		.chipt { fill: #d9e7ee; font: 500 15px ui-monospace, 'Cascadia Code', Consolas, monospace; }
+		.mark { fill: none; stroke: #f2a65a; stroke-width: 3; }
+		.ruler { stroke: #24343e; stroke-width: 1; }
+	</style>
+	<rect width="1200" height="320" fill="#111a20"/>
+	<g>
+		<line class="ruler" x1="0" y1="64" x2="1200" y2="64"/>
+		<line class="ruler" x1="0" y1="256" x2="1200" y2="256"/>
+		<line class="ruler" x1="64" y1="0" x2="64" y2="320"/>
+		<line class="ruler" x1="1136" y1="0" x2="1136" y2="320"/>
+	</g>
+	<g transform="translate(960 70)">
+		<rect x="0" y="0" width="150" height="104" rx="6" fill="#18252d" stroke="#33505f"/>
+		<rect x="14" y="16" width="70" height="10" rx="2" fill="#f2a65a"/>
+		<rect x="14" y="36" width="122" height="6" rx="2" fill="#3b5361"/>
+		<rect x="14" y="50" width="100" height="6" rx="2" fill="#3b5361"/>
+		<rect x="14" y="72" width="54" height="18" rx="4" fill="#d9e7ee"/>
+		<rect class="mark" x="8" y="66" width="66" height="30" rx="4" stroke-dasharray="6 4"/>
+	</g>
+	<text class="title" x="96" y="138">AstronDesign</text>
+	<text class="lead" x="98" y="182">AI 에이전트를 위한 웹 UI/UX 디자인 하네스 · stdio MCP 서버</text>
+	<g transform="translate(96 208)">
+		<rect class="chip" x="0" y="0" width="136" height="32" rx="16"/>
+		<text class="chipt" x="68" y="21" text-anchor="middle">design_guide</text>
+		<rect class="chip" x="148" y="0" width="144" height="32" rx="16"/>
+		<text class="chipt" x="220" y="21" text-anchor="middle">design_search</text>
+		<rect class="chip" x="304" y="0" width="164" height="32" rx="16"/>
+		<text class="chipt" x="386" y="21" text-anchor="middle">design_direction</text>
+		<rect class="chip" x="480" y="0" width="124" height="32" rx="16"/>
+		<text class="chipt" x="542" y="21" text-anchor="middle">design_lint</text>
+		<rect class="chip" x="616" y="0" width="140" height="32" rx="16"/>
+		<text class="chipt" x="686" y="21" text-anchor="middle">design_render</text>
+		<rect class="chip" x="768" y="0" width="148" height="32" rx="16"/>
+		<text class="chipt" x="842" y="21" text-anchor="middle">design_inspect</text>
+	</g>
+</svg>
