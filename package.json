@@ -1,0 +1,29 @@
+{
+	"name": "astrondesign",
+	"version": "0.1.0",
+	"private": true,
+	"type": "module",
+	"license": "UNLICENSED",
+	"description": "AstronDesign: UI/UX design harness MCP server (impeccable, taste-skill, UI UX Pro Max, awesome-design-md, playwright-core).",
+	"engines": {
+		"node": ">=22.18"
+	},
+	"scripts": {
+		"start": "node src/server.ts",
+		"typecheck": "tsc -p tsconfig.json",
+		"test": "node --test --test-concurrency=1 \"test/unit/*.test.ts\" \"test/proto/*.test.ts\"",
+		"test:browser": "node --test --test-concurrency=1 \"test/browser/*.test.ts\"",
+		"vendor": "node scripts/vendor.mjs",
+		"smoke": "node scripts/smoke.mjs"
+	},
+	"dependencies": {
+		"@impeccable/cli-windows-x64": "0.1.15",
+		"@modelcontextprotocol/server": "2.3.1",
+		"playwright-core": "1.63.0",
+		"zod": "4.6.7"
+	},
+	"devDependencies": {
+		"@types/node": "24.19.2",
+		"typescript": "6.0.3"
+	}
+}

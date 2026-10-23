@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.env
+.serena/
+.astron-logs/
+.env*
+*.log
+CLAUDE.local.md
+.claude/
