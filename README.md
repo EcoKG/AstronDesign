@@ -251,4 +251,4 @@ npm run vendor        # 원본 사본에서 vendor/ 재생성(커밋 해시 확�
 - impeccable 의 LICENSE·NOTICE.md 는 `vendor/impeccable` 에 그대로 보존합니다.
 - `design_inspect` 의 요소 묶음 형식은 stablyai/orca Design Mode(MIT)의 동작을 참고해 새로 구현했습니다(코드 미포함).
 - 브랜드 DESIGN.md 는 참고 자료입니다. 각 상표·외형의 권리는 해당 소유자에게 있습니다.
-- 이 저장소 자체의 라이선스는 아직 정하지 않았습니다(`package.json` 의 `UNLICENSED`).
+- 이 저장소 자체는 [MIT 라이선스](LICENSE)입니다. `vendor/` 의 원본은 위 표의 각 라이선스를 따릅니다.

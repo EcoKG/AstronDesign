@@ -3,7 +3,7 @@
 	"version": "0.1.0",
 	"private": true,
 	"type": "module",
-	"license": "UNLICENSED",
+	"license": "MIT",
 	"description": "AstronDesign: UI/UX design harness MCP server (impeccable, taste-skill, UI UX Pro Max, awesome-design-md, playwright-core).",
 	"engines": {
 		"node": ">=22.18"
