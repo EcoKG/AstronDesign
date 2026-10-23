@@ -1,0 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head><meta charset="utf-8"><title>CSSOM rules</title>
+<script>
+	const el = document.createElement('style');
+	document.head.appendChild(el);
+	el.sheet.insertRule('.g{background:linear-gradient(90deg,#8b5cf6,#ec4899);-webkit-background-clip:text;background-clip:text;color:transparent}', 0);
+	el.sheet.insertRule(':root{--grad:linear-gradient(90deg,#8b5cf6,#ec4899)}', 1);
+	el.sheet.insertRule('.v{background:var(--grad);background-clip:text;color:transparent}', 2);
+	const adopted = new CSSStyleSheet();
+	adopted.replaceSync('.p{color:#c8c8c8;background:#ffffff}');
+	document.adoptedStyleSheets = [...document.adoptedStyleSheets, adopted];
+</script>
+</head>
+<body>
+<h1 class="g">Gradient from insertRule</h1>
+<h2 class="v">Gradient from a custom property</h2>
+<p class="p">Pale paragraph from an adopted sheet.</p>
+</body></html>
