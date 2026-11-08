@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>React 개발 빌드 시험</title>
+<style>
+	body { margin: 0; font-family: system-ui, sans-serif; color: #1a1a1a; background: #ffffff; }
+	main { max-width: 960px; margin: 0 auto; padding: 48px 24px; }
+	h1 { font-size: 40px; line-height: 1.2; margin: 0 0 16px; }
+	h2 { font-size: 24px; margin: 0 0 12px; }
+	p { font-size: 18px; line-height: 1.6; margin: 0 0 16px; }
+	.card { padding: 24px; border: 1px solid #8a8a8a; border-radius: 8px; }
+</style>
+</head>
+<body>
+<body>
+<main>
+	<h1 id="title">주문</h1>
+	<button class="cta" type="button">주문하기</button>
+</main>
+<script>
+	// React 개발 빌드가 DOM 요소에 붙이는 fiber(_debugSource 포함)를 흉내 낸다.
+	function OrderButton() {}
+	document.querySelector('.cta')['__reactFiber$t3st'] = { type: 'button', _debugSource: { fileName: 'src/components/OrderButton.jsx', lineNumber: 14 }, return: { type: OrderButton, return: null } };
+</script>
+</body>
+</html>
