@@ -55,6 +55,24 @@ function state(s: Session) {
 /** 세션별로 이미 센 CSP 차단 주소. */
 const blockedSeen = new WeakMap<Session, Set<string>>();
 
+/** 세션별로 기억하는 CSP 차단 주소 수 상한. */
+export const BLOCKED_SEEN_MAX = 256;
+/** 차단 주소를 기억할 때 남기는 최대 글자 수. 앞 BLOCKED_URI_MAX 자가 같은 두 주소는 한 건으로 센다. */
+export const BLOCKED_URI_MAX = 2048;
+
+/**
+ * 차단 주소를 기억하고 처음 본 주소면 true. 문자열이 아니면 기억하지 않고 늘 true.
+ * 다시 본 주소는 최신으로 옮기고, 상한을 넘으면 가장 오래된 주소부터 버린다(밀려난 주소가 다시 오면 새 건으로 센다).
+ */
+export function noteBlocked(seen: Set<string>, uri: unknown): boolean {
+	if (typeof uri !== 'string') return true;
+	const key = uri.slice(0, BLOCKED_URI_MAX);
+	const fresh = !seen.delete(key);
+	seen.add(key);
+	if (seen.size > BLOCKED_SEEN_MAX) seen.delete(seen.values().next().value!);
+	return fresh;
+}
+
 /** 자동 저장 API. POST 는 Origin 이 작업 출처일 때만 받는다(CSP 위반 보고 제외). 위반 보고는 아트보드가 여럿이라 같은 차단 주소를 한 번만 센다. */
 async function api(s: Session, req: IncomingMessage, res: ServerResponse, name: string): Promise<void> {
 	if (req.method === 'POST' && name === 'csp') {
@@ -62,8 +80,7 @@ async function api(s: Session, req: IncomingMessage, res: ServerResponse, name: 
 		const uri = body?.['csp-report']?.['blocked-uri'];
 		const seen = blockedSeen.get(s) ?? new Set<string>();
 		blockedSeen.set(s, seen);
-		if (typeof uri !== 'string' || !seen.has(uri)) s.blocked++;
-		if (typeof uri === 'string') seen.add(uri);
+		if (noteBlocked(seen, uri)) s.blocked++;
 		return send(res, 204, '');
 	}
 	if (req.method === 'GET' && name === 'state') return sendJson(res, 200, state(s));

@@ -7,7 +7,7 @@ import { join } from 'node:path';
 import { cleanup, makeProj } from '../helpers.ts';
 import { approveHeaders, approveToken, http, workApi, workHeaders } from '../editor-helpers.ts';
 import { closeEditors, openSession, type Session } from '../../src/editor/session.ts';
-import { assertLoopback } from '../../src/editor/work-server.ts';
+import { BLOCKED_SEEN_MAX, BLOCKED_URI_MAX, assertLoopback, noteBlocked } from '../../src/editor/work-server.ts';
 import { outRoot, ToolError } from '../../src/output.ts';
 
 afterEach(async () => {
@@ -207,4 +207,49 @@ test('SV13 작업 리스너에 plan·approve 경로 없음(404)', async () => {
 		assert.equal((await http(workApi(s, p), { method: 'POST', headers: workHeaders(s), body: '{}' })).status, 404, p);
 		assert.equal((await http(`${s.workOrigin}/api/${p}`, { method: 'POST', headers: workHeaders(s), body: '{}' })).status, 404, p);
 	}
+});
+
+test('SV14 차단 주소 기록 상한: 256개 넘으면 가장 오래된 것부터 버림, 다시 본 주소는 최신으로, 2048자 넘는 주소는 잘라 저장', () => {
+	assert.deepEqual([BLOCKED_SEEN_MAX, BLOCKED_URI_MAX], [256, 2048]);
+	const seen = new Set<string>();
+	const u = (i: number) => `https://cdn.example/${i}.png`;
+	for (let i = 0; i < 256; i++) assert.equal(noteBlocked(seen, u(i)), true, `처음 ${i}`);
+	assert.equal(seen.size, 256);
+	assert.equal(noteBlocked(seen, u(0)), false, '다시 본 주소는 새 건 아님');
+	assert.equal(noteBlocked(seen, u(256)), true, '257번째');
+	assert.equal(seen.size, 256, '상한 유지');
+	assert.ok(seen.has(u(0)), '다시 본 0 은 최신으로 옮겨 남음');
+	assert.ok(!seen.has(u(1)), '가장 오래된 1 을 버림');
+	assert.equal(noteBlocked(seen, u(1)), true, '밀려난 주소는 다시 1건(남는 한계)');
+	assert.ok(!seen.has(u(2)));
+	assert.equal(seen.size, 256);
+	const long = 'https://cdn.example/' + 'a'.repeat(100000);
+	const fresh = new Set<string>();
+	assert.equal(noteBlocked(fresh, long), true);
+	assert.deepEqual([...fresh].map((x) => x.length), [2048], '2048자로 잘라 저장');
+	assert.equal(noteBlocked(fresh, long + 'b'), false, '앞 2048자가 같으면 한 건(남는 한계)');
+	for (const bad of [undefined, null, 7, {}]) assert.equal(noteBlocked(fresh, bad), true, `문자열 아님 ${String(bad)} 은 매번 1건`);
+	assert.equal(fresh.size, 1, '문자열 아닌 값은 기록 안 함');
+});
+
+test('SV15 CSP 보고 API: 같은 주소 두 번은 1건, 문자열 아닌 blocked-uri 는 매번 1건, 상한 밖으로 밀린 주소는 다시 1건', async () => {
+	const { s } = await session();
+	const report = async (body: string) => (await http(workApi(s, 'csp'), { method: 'POST', headers: { 'content-type': 'application/csp-report' }, body })).status;
+	const uri = (u: unknown) => JSON.stringify({ 'csp-report': { 'blocked-uri': u } });
+	assert.equal(s.blocked, 0);
+	assert.equal(await report(uri('https://cdn.example/a.png')), 204);
+	assert.equal(await report(uri('https://cdn.example/a.png')), 204);
+	assert.equal(s.blocked, 1, '같은 주소 두 번은 1건');
+	await report(JSON.stringify({ 'csp-report': {} }));
+	await report(uri(42));
+	await report(uri(null));
+	assert.equal(s.blocked, 4, '없음·숫자·null 은 매번 1건');
+	assert.equal(await report('{깨진'), 204, '깨진 JSON 도 204');
+	assert.equal(s.blocked, 5);
+	for (let i = 0; i < BLOCKED_SEEN_MAX; i++) await report(uri(`https://cdn.example/${i}.png`));
+	assert.equal(s.blocked, 5 + BLOCKED_SEEN_MAX);
+	await report(uri('https://cdn.example/a.png'));
+	assert.equal(s.blocked, 6 + BLOCKED_SEEN_MAX, '상한 밖으로 밀린 a.png 는 다시 1건');
+	await report(uri(`https://cdn.example/${BLOCKED_SEEN_MAX - 1}.png`));
+	assert.equal(s.blocked, 6 + BLOCKED_SEEN_MAX, '최근 주소는 그대로 1건');
 });
