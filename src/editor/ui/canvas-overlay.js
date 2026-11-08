@@ -1,7 +1,7 @@
 // 캔버스 엔진 어댑터(자체 무한 캔버스): 폭별 실제 렌더 iframe 아트보드를 world 에 나란히 두고 이동·배율·맞춤과 고르기·끌기·크기·댓글 표지를 그린다.
-// 다른 엔진으로 바꿀 때 이 파일의 createCanvas 인터페이스(setBoards·activate·focusBoard·fitAll·fit·setZoom·select·redraw·setMode·setTool·setSpace·setMarkers·view)만 맞춘다.
+// 다른 엔진으로 바꿀 때 이 파일의 createCanvas 인터페이스(setBoards·activate·focusBoard·fitAll·fit·overviewZoom·boardZoom·setZoom·select·redraw·setMode·setTool·setSpace·setMarkers·view)만 맞춘다.
 import { elementByPath, elementPath } from './shared/dom-bundle.js';
-import { boardHeight, boardLabel } from './shared/boards.js';
+import { boardHeight, boardLabel, boardTag } from './shared/boards.js';
 
 const ZOOM_STEPS = [0.1, 0.25, 0.33, 0.5, 0.67, 0.75, 0.9, 1, 1.25, 1.5, 2, 3];
 const MIN_ZOOM = 0.1;
@@ -15,6 +15,8 @@ const PAD = { left: 32, right: 32, top: 48, bottom: 88 };
 const GRID = 16;
 /** 이름표 아래쪽과 보드 위쪽 사이(화면 px, 이름표 높이 포함). */
 const LABEL_GAP = 26;
+/** 이름표 오른쪽 끝과 다음 이름표 사이 최소 간격(화면 px). */
+const LABEL_SPACE = 8;
 const MARKER = 24;
 /** 선택 표지 이름 칩 높이(화면 px). 보드 위 이름표와 겹치면 요소 아래로 내린다. */
 const TAG_H = 22;
@@ -87,10 +89,13 @@ export function createCanvas(cb) {
 	}
 
 	function redraw() {
-		for (const b of boards) {
-			const w = b.w * zoom;
-			Object.assign(b.label.style, { left: `${pan.x + b.x * zoom}px`, top: `${pan.y - LABEL_GAP}px`, maxWidth: `${Math.max(w, 40)}px` });
-			b.label.textContent = w >= 150 ? boardLabel(b.w) : w >= 72 ? `${b.w} × ${b.h}` : String(b.w);
+		const c = box();
+		for (const [i, b] of boards.entries()) {
+			const left = pan.x + b.x * zoom;
+			const next = boards[i + 1];
+			const room = next ? (next.x - b.x) * zoom - LABEL_SPACE : Math.max(b.w * zoom, c.width - left - LABEL_SPACE);
+			Object.assign(b.label.style, { left: `${left}px`, top: `${pan.y - LABEL_GAP}px`, maxWidth: `${Math.max(room, 0)}px` });
+			b.label.textContent = boardTag(b.w, room);
 		}
 		const sel = active && selected?.isConnected ? selected : null;
 		selBox.hidden = !sel;
@@ -109,7 +114,6 @@ export function createCanvas(cb) {
 			place(g, toCanvas(b, t.getBoundingClientRect()));
 			return [g];
 		}));
-		const c = box();
 		markersEl.replaceChildren(...markers.map((m) => {
 			const b = boardOf(m.w) ?? active;
 			const r = m.el?.isConnected ? visibleTop(m.el) : { left: m.point?.x ?? 0, top: m.point?.y ?? 0, width: 0, height: 0 };
@@ -144,12 +148,17 @@ export function createCanvas(cb) {
 		apply();
 	}
 
-	/** world 사각형이 여백 안에 들어오는 배율(최대 1)로 가운데 맞춘다. */
-	function fitRect(r) {
+	/** world 사각형이 여백 안에 들어오는 배율(최대 1)과 가운데 맞춘 이동 위치를 계산만 한다. */
+	function fitOf(r) {
 		const c = box();
 		const aw = Math.max(1, c.width - PAD.left - PAD.right), ah = Math.max(1, c.height - PAD.top - PAD.bottom);
-		zoom = clampZoom(Math.min(1, aw / r.w, ah / r.h));
-		pan = { x: PAD.left + (aw - r.w * zoom) / 2 - r.x * zoom, y: PAD.top + (ah - r.h * zoom) / 2 - r.y * zoom };
+		const z = clampZoom(Math.min(1, aw / r.w, ah / r.h));
+		return { zoom: z, pan: { x: PAD.left + (aw - r.w * z) / 2 - r.x * z, y: PAD.top + (ah - r.h * z) / 2 - r.y * z } };
+	}
+
+	/** world 사각형이 여백 안에 들어오는 배율(최대 1)로 가운데 맞춘다. */
+	function fitRect(r) {
+		({ zoom, pan } = fitOf(r));
 		apply();
 	}
 
@@ -327,6 +336,13 @@ export function createCanvas(cb) {
 		fitAll: () => fitRect(allRect()),
 		/** 활성 보드 맞춤. */
 		fit: () => active && fitRect(boardRect(active)),
+		/** 모든 보드 맞춤 배율(보기는 바꾸지 않음). */
+		overviewZoom: () => fitOf(allRect()).zoom,
+		/** 폭 w 보드 맞춤 배율(보기는 바꾸지 않음, 없는 폭은 0). */
+		boardZoom: (w) => {
+			const b = boardOf(w);
+			return b ? fitOf(boardRect(b)).zoom : 0;
+		},
 		/** 배율을 캔버스 가운데 기준으로 정한다(0.1~3). */
 		setZoom(z) {
 			const c = box();

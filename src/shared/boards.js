@@ -31,3 +31,36 @@ export function boardName(w) {
 export function boardLabel(w) {
 	return `${boardName(w)} · ${w} × ${boardHeight(w)}`;
 }
+
+/**
+ * 보드 이름표 글. 쓸 자리 150px 이상이면 전체, 96px 이상이면 "모바일 · 390", 그 아래는 "모바일".
+ * 96 은 굵게 그린 활성 이름표의 "데스크톱 · 1440"(약 80px)이 들어가는 폭이다.
+ * @param {number} w
+ * @param {number} room
+ * @returns {string}
+ */
+export function boardTag(w, room) {
+	return room >= 150 ? boardLabel(w) : room >= 96 ? `${boardName(w)} · ${w}` : boardName(w);
+}
+
+/** 모든 보드 맞춤을 첫 화면으로 쓰는 최소 배율(390 보드가 이름표 중간 단계 폭 96px 이상으로 보이는 0.25). */
+export const OVERVIEW_MIN = 0.25;
+/** 보드 하나를 읽히는 보드로 보는 최소 배율(본문 16px 이 8px 이상으로 보이는 0.5). */
+export const READ_MIN = 0.5;
+
+/**
+ * 편집기 첫 보기. 유효한 ?w 가 있으면 그 보드 맞춤.
+ * 없으면 모든 보드 맞춤 배율 ≥ OVERVIEW_MIN 일 때 모든 보드, 첫 보드 맞춤 배율 ≥ READ_MIN 일 때 첫 보드,
+ * 그 밖에는 화면 폭에 가장 가까운 보드(같은 거리면 좁은 쪽)에 맞춘다.
+ * @param {{ widths: number[], requested: number | null, overview: number, fitOf: (w: number) => number, viewport: number }} a
+ * @returns {{ active: number, fit: 'all' | 'board' }}
+ */
+export function initialView(a) {
+	if (a.requested !== null && a.widths.includes(a.requested)) return { active: a.requested, fit: 'board' };
+	const first = a.widths[0];
+	if (a.overview >= OVERVIEW_MIN) return { active: first, fit: 'all' };
+	if (a.fitOf(first) >= READ_MIN) return { active: first, fit: 'board' };
+	const gap = (/** @type {number} */ w) => Math.abs(w - a.viewport);
+	const near = a.widths.reduce((best, w) => (gap(w) < gap(best) || (gap(w) === gap(best) && w < best) ? w : best), first);
+	return { active: near, fit: 'board' };
+}

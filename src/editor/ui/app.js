@@ -4,7 +4,7 @@ import { createComments } from './comments.js';
 import { createHistory } from './history.js';
 import { createLayers } from './layers.js';
 import { createProps } from './props.js';
-import { boardHeight, boardLabel, boardName } from './shared/boards.js';
+import { boardHeight, boardLabel, boardName, initialView } from './shared/boards.js';
 import { elementByPath, elementPath, selectorAt } from './shared/dom-bundle.js';
 import { OP_KINDS } from './shared/ops.js';
 
@@ -380,9 +380,10 @@ async function main() {
 	document.addEventListener('keyup', keyUp);
 	mode = params.get('mode') === 'comment' ? 'comment' : 'edit';
 	setMode(mode);
-	activate(valid ? w : widths[0]);
-	canvas.fitAll();
-	if (valid) canvas.fit();
+	const first = initialView({ widths, requested: valid ? w : null, overview: canvas.overviewZoom(), fitOf: canvas.boardZoom, viewport: innerWidth });
+	activate(first.active);
+	if (first.fit === 'all') canvas.fitAll();
+	else canvas.fit();
 	await loadFrames(false);
 	setTimeout(poll, POLL_MS);
 }

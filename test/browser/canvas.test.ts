@@ -426,3 +426,47 @@ test('CV14 창 크기 변경 뒤 선택 상자 = 요소 위치(±1px)', async ()
 		assert.ok(label.y + label.height <= b.y + 1, `${size.width}: 이름표는 보드 위`);
 	}
 });
+
+test('CV15 뷰포트 390·768 첫 화면: 화면 폭에 가까운 보드 활성·맞춤 배율 0.5 이상·보드 캔버스 안, 1440 은 모든 보드 맞춤 유지', async () => {
+	const c = await startServer(makeProj('editor'));
+	const ed = await edit(c, 'editor/index.html');
+	for (const [w, h] of [[390, 844], [768, 1024]]) {
+		const { page } = await open(ed.url, '', { width: w, height: h });
+		assert.equal(await activeW(page), w, `${w}: 화면 폭과 같은 보드 활성`);
+		const first = await view(page);
+		assert.ok(first.zoom >= 0.5, `${w}: 첫 배율 ${first.zoom} ≥ 0.5`);
+		assert.ok(inside(await board(page, w), await rect(page, '#canvas')), `${w}: 보드 캔버스 안`);
+		assert.equal(await page.textContent('#zoom-label'), `${Math.round(first.zoom * 100)}%`, `${w}: 배율 표시`);
+		await page.screenshot({ path: join(E2E, `cv15-${w}.png`) });
+		await page.keyboard.press('Control+Equal');
+		await page.keyboard.press('Shift+Digit2');
+		assert.deepEqual(await view(page), first, `${w}: 첫 화면 = 활성 보드 맞춤(Shift+2)`);
+	}
+	const { page } = await open(ed.url);
+	assert.equal(await activeW(page), 1440, '1440: 첫 보드 활성');
+	const first = await view(page);
+	assert.ok(first.zoom >= 0.25, `1440: 모든 보드 맞춤 배율 ${first.zoom} ≥ 0.25`);
+	await page.click('#zoom-in');
+	await page.keyboard.press('Control+0');
+	assert.deepEqual(await view(page), first, '1440: 첫 화면 = 모든 보드 맞춤(Ctrl+0)');
+});
+
+test('CV16 모든 보드 맞춤(뷰포트 390·1440)에서 보드 이름표마다 기기 이름 보임·글자 잘림 없음·이름표끼리 겹침 0', async () => {
+	const c = await startServer(makeProj('editor'));
+	const ed = await edit(c, 'editor/index.html');
+	const names: Record<number, string> = { 1440: '데스크톱', 768: '태블릿', 390: '모바일' };
+	for (const [w, h] of [[390, 844], [1440, 900]]) {
+		const { page } = await open(ed.url, '', { width: w, height: h });
+		await page.keyboard.press('Control+0');
+		const tags = await page.$$eval('#labels .board-label', (els) => els.map((e) => ({ w: Number((e as HTMLElement).dataset.w), t: e.textContent ?? '', sw: e.scrollWidth, cw: e.clientWidth, r: e.getBoundingClientRect().toJSON() as DOMRect })));
+		assert.equal(tags.length, 3);
+		const cr = await rect(page, '#canvas');
+		for (const g of tags) {
+			assert.ok(g.t.startsWith(names[g.w]), `${w}: 보드 ${g.w} 이름표 "${g.t}" 에 기기 이름`);
+			assert.ok(g.sw <= g.cw + 1, `${w}: 보드 ${g.w} 이름표 잘림 ${g.sw} > ${g.cw}`);
+			assert.ok(g.r.x + g.r.width <= cr.x + cr.width + 1, `${w}: 보드 ${g.w} 이름표 캔버스 안`);
+		}
+		for (let i = 1; i < tags.length; i++) assert.ok(tags[i - 1].r.x + tags[i - 1].r.width <= tags[i].r.x, `${w}: 이름표 ${tags[i - 1].w}·${tags[i].w} 겹침`);
+		await page.screenshot({ path: join(E2E, `cv16-labels-${w}.png`) });
+	}
+});
