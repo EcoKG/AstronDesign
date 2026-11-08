@@ -37,7 +37,7 @@ AstronDesign 편집기 화면(`src/editor/ui/`)을 디자이너가 쓰는 캔버
 ### S4 검사
 | 검사 | 결과 | 경로 |
 |---|---|---|
-| `design_lint`(ui css·html·app.js·canvas-overlay.js·props.js·comments.js, surface operate) | FAIL 0 · WARN 0 · INFO 0, surface-skipped 22(taste 규칙은 persuade 전용) | `.astron-logs/astrondesign/20261109-000943-design_lint-070a/report.json` |
+| `design_lint`(구현 뒤 최종 코드: ui index.html·editor.css·app.js·canvas-overlay.js·props.js·comments.js·layers.js·history.js·approve/index.html·approve/approve.js, shared/boards.js, surface operate) | FAIL 0 · WARN 0 · INFO 0, surface-skipped 22(taste 규칙은 persuade 전용) | `.astron-logs/astrondesign/20261109-011458-design_lint-1bf4/report.json` |
 | `design_render`(MCP, 편집기 `?sel=h1`, 1440·768·390) | FAIL 0 · WARN 0, 폭마다 blocked=0 | `.astron-logs/astrondesign/20261109-001233-design_render-4dd6/` |
 | `design_render`(MCP, `?mode=comment&w=1440`) | FAIL 0 · WARN 0 | `.astron-logs/astrondesign/20261109-001338-design_render-b178/` |
 | `npm run render -- --edit test/fixtures/editor/index.html --viewports 1440,768,390 --states "sel=h1;mode=comment;w=390&sel=h1"` | 세 상태 모두 `OK design_render: FAIL 0 · WARN 0`, `blocked=0` | `.astron-logs/after-render.log` |
