@@ -1,8 +1,8 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, realpathSync, rmSync, statSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -51,6 +51,20 @@ function catBlobs(cwd: string, specs: string[]): (Buffer | null)[] {
 		i += size + 1;
 	}
 	return res;
+}
+
+/** 원본 폴더가 그 커밋을 가진 독립 git 저장소면 null, 아니면 원본 blob 비교를 건너뛸 사유를 돌려준다. */
+function srcRepoSkip(dir: string, commit: string): string | null {
+	if (!existsSync(dir)) return '원본 없음';
+	const top = spawnSync('git', ['-C', dir, 'rev-parse', '--show-toplevel'], { encoding: 'utf8' });
+	if (top.status !== 0) return `git 저장소 아님(${top.status}): ${(top.stderr ?? '').trim().split('\n')[0]}`;
+	const norm = (p: string) => {
+		const r = realpathSync.native(p).replace(/[\\/]+$/, '');
+		return process.platform === 'win32' ? r.toLowerCase() : r;
+	};
+	if (norm(top.stdout.trim()) !== norm(dir)) return '상위 저장소에 속한 폴더';
+	const has = spawnSync('git', ['-C', dir, 'cat-file', '-e', `${commit}^{commit}`]);
+	return has.status === 0 ? null : '커밋 없음';
 }
 
 test('V1 원본 4종 LICENSE 보존', () => {
@@ -113,8 +127,9 @@ test('V6 SOURCES.json 해시가 인덱스 blob·원본 커밋 blob 과 일치', 
 		const badIndex = rels.filter((r, k) => hash(index[k]) !== s.files[r]);
 		assert.equal(badIndex.length, 0, `${s.name} 인덱스 blob 불일치 ${badIndex.length}/${rels.length}: ${badIndex.slice(0, 3).join(', ')}`);
 		const repo = join(SRC_ROOT, s.repo.split('/').pop()!);
-		if (!existsSync(repo)) {
-			t.diagnostic(`원본 없음, 원본 blob 비교 생략: ${repo}`);
+		const skip = srcRepoSkip(repo, s.commit);
+		if (skip) {
+			t.diagnostic(`원본 blob 비교 생략(${skip}): ${repo}`);
 			continue;
 		}
 		const toRel = s.to.replace(/^vendor\//, '');
@@ -128,4 +143,28 @@ test('V6 SOURCES.json 해시가 인덱스 blob·원본 커밋 blob 과 일치', 
 		const badOrig = rels.filter((r, k) => hash(orig[k]) !== s.files[r]);
 		assert.equal(badOrig.length, 0, `${s.name} 원본 blob 불일치 ${badOrig.length}/${rels.length}: ${badOrig.slice(0, 3).join(', ')}`);
 	}
+});
+
+test('V7 원본 폴더가 커밋을 가진 독립 git 저장소가 아니면 원본 비교를 건너뛴다', (t) => {
+	const commit = COMMITS.impeccable;
+	assert.equal(srcRepoSkip(join(tmpdir(), `v7-none-${process.pid}`), commit), '원본 없음');
+	const base = mkdtempSync(join(tmpdir(), 'v7-'));
+	t.after(() => rmSync(base, { recursive: true, force: true }));
+	const empty = join(base, 'empty');
+	mkdirSync(empty);
+	assert.match(srcRepoSkip(empty, commit) ?? '', /^(git 저장소 아님|상위 저장소)/, '빈 폴더');
+	const headless = join(base, 'headless');
+	mkdirSync(join(headless, '.git', 'objects'), { recursive: true });
+	mkdirSync(join(headless, '.git', 'refs'));
+	assert.match(srcRepoSkip(headless, commit) ?? '', /^(git 저장소 아님|상위 저장소)/, 'HEAD 없는 .git');
+	assert.equal(srcRepoSkip(join(ROOT, 'test'), commit), '상위 저장소에 속한 폴더');
+	const fresh = join(base, 'fresh');
+	mkdirSync(fresh);
+	execFileSync('git', ['-C', fresh, '-c', 'init.defaultBranch=main', 'init', '-q']);
+	assert.equal(srcRepoSkip(fresh, commit), '커밋 없음', 'git init 만 한 폴더');
+	const head = execFileSync('git', ['-C', ROOT, 'rev-parse', 'HEAD'], { encoding: 'utf8' }).trim();
+	assert.equal(srcRepoSkip(ROOT, head), null, '끝 구분자 포함 ROOT');
+	assert.equal(srcRepoSkip(ROOT.replace(/[\\/]+$/, ''), head), null, '끝 구분자 없는 ROOT');
+	if (process.platform === 'win32') assert.equal(srcRepoSkip(ROOT.toUpperCase(), head), null, '대문자 ROOT');
+	assert.equal(srcRepoSkip(ROOT, '0'.repeat(40)), '커밋 없음', '없는 커밋');
 });
