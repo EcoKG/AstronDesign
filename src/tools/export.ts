@@ -1,5 +1,5 @@
 // design_export: 대상(편집기 미적용 편집 포함)을 등록된 파일 형식(HTML·PNG)으로 편집기 보드 폭마다 내보낸다. 외부 네트워크는 막는다.
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { BrowserContext, Page } from 'playwright-core';
 import * as z from 'zod';
@@ -7,10 +7,9 @@ import { getBrowser, newContext, resolveTarget, scheduleIdle, type Blocked } fro
 import { DEFAULT_WIDTHS, editorDir } from '../editor/session.ts';
 import { loadChanges, pendingOps } from '../editor/store.ts';
 import { exporterIds, getExporter } from '../export/registry.ts';
-import { ToolError, callDir, defineTool, ok } from '../output.ts';
+import { ToolError, callDir, defineTool, ok, writeReport } from '../output.ts';
+import { boardHeight } from '../shared/boards.js';
 import { OP_KINDS, type Op } from '../shared/ops.js';
-
-const HEIGHT: Record<number, number> = { 1440: 900, 768: 1024, 390: 844 };
 
 /** 편집 연산을 페이지에 적용하는 식(문자열 평가라 페이지 CSP 의 eval 제한을 받지 않음). */
 function applyScript(ops: Op[]): string {
@@ -47,7 +46,7 @@ export const exportTool = defineTool({
 			const blocked: Blocked = [];
 			const { browser } = await getBrowser();
 			const open = async (w: number): Promise<Page> => {
-				const ctx = await newContext(browser, w, HEIGHT[w] ?? Math.round(w * 0.625), false, blocked);
+				const ctx = await newContext(browser, w, boardHeight(w), false, blocked);
 				contexts.push(ctx);
 				const page = await ctx.newPage();
 				try {
@@ -62,7 +61,7 @@ export const exportTool = defineTool({
 			const files: Record<string, string[]> = {};
 			for (const f of [...new Set(a.formats)]) files[f] = await getExporter(f)!.run({ dir, widths, open });
 			const report = join(dir, 'report.json');
-			writeFileSync(report, JSON.stringify({ tool: 'design_export', args: a, url: tgt.url, ops: ops.length, blocked, files }, null, '\t'));
+			writeReport(report, { tool: 'design_export', args: a, url: tgt.url, ops: ops.length, blocked, files });
 			const head = [`OK design_export: ${Object.keys(files).join(',')} (편집 ${ops.length}건 반영)`];
 			if (blocked.length) head.push(`외부 자원 ${blocked.length}건 차단: 내보낸 파일에서 빠짐`);
 			for (const [f, paths] of Object.entries(files)) head.push(`${f}: ${paths.join(', ')}`);

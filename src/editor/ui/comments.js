@@ -1,8 +1,8 @@
-// 인라인 댓글: 댓글 모드에서 누른 요소에 댓글을 달고, 의도·에이전트에 보내기·답글·해결과 모든 댓글 목록을 다룬다.
+// 인라인 댓글: 댓글 모드에서 누른 요소에 댓글을 달고, 의도·에이전트에 보내기·답글·해결과 모든 댓글 목록, 보드 폭별 표지를 다룬다.
 import { LIMITS, collectBundle, elementByPath, elementPath, selectorAt } from './shared/dom-bundle.js';
 
 /**
- * @param {{ intents: Record<string, { label: string }>, save: (items: any[]) => Promise<any[]>, doc: () => Document | null, width: () => number, changed: (items: any[]) => void }} opts
+ * @param {{ intents: Record<string, { label: string }>, save: (items: any[]) => Promise<any[]>, doc: (width: number) => Document | null, width: () => number, changed: (items: any[]) => void }} opts
  */
 export function createComments(opts) {
 	const $ = (id) => document.getElementById(id);
@@ -27,7 +27,7 @@ export function createComments(opts) {
 			num.className = 'num';
 			num.textContent = String(i + 1);
 			const meta = document.createElement('span');
-			meta.textContent = `${opts.intents[c.intent]?.label ?? c.intent} · ${{ open: '열림', sent: '보냄', resolved: '해결' }[c.status]}`;
+			meta.textContent = `${opts.intents[c.intent]?.label ?? c.intent} · ${{ open: '열림', sent: '보냄', resolved: '해결' }[c.status]}${c.width ? ` · ${c.width}` : ''}`;
 			head.append(num, meta);
 			const p = document.createElement('p');
 			p.className = 'note';
@@ -43,19 +43,19 @@ export function createComments(opts) {
 			const box = Object.assign(document.createElement('input'), { type: 'checkbox', checked: c.send });
 			box.addEventListener('change', () => persist(items.map((x) => (x.id === c.id ? { ...x, send: box.checked } : x))));
 			check.append(box, '에이전트에 보내기');
-			const row = document.createElement('div');
-			row.className = 'reply-row';
 			const input = Object.assign(document.createElement('input'), { className: 'reply-input', placeholder: '답글', maxLength: 2000 });
 			input.setAttribute('aria-label', `${i + 1}번 댓글 답글`);
 			const reply = Object.assign(document.createElement('button'), { type: 'button', className: 'reply-send', textContent: '답글' });
 			reply.addEventListener('click', () => {
-				if (!input.value.trim()) return;
+				if (!input.value.trim()) return input.focus();
 				persist(items.map((x) => (x.id === c.id ? { ...x, replies: [...x.replies, { at: new Date().toISOString(), text: input.value.trim() }] } : x)));
 			});
 			const resolve = Object.assign(document.createElement('button'), { type: 'button', className: 'resolve', textContent: c.status === 'resolved' ? '다시 열기' : '해결' });
 			resolve.addEventListener('click', () => persist(items.map((x) => (x.id === c.id ? { ...x, status: x.status === 'resolved' ? 'open' : 'resolved' } : x))));
-			row.append(input, reply, resolve);
-			li.append(head, p, sel, replies, check, row);
+			const actions = document.createElement('div');
+			actions.className = 'actions';
+			actions.append(reply, resolve);
+			li.append(head, p, sel, replies, check, input, actions);
 			return li;
 		}));
 		opts.changed(items);
@@ -80,7 +80,7 @@ export function createComments(opts) {
 			items = next;
 			render();
 		},
-		/** 누른 요소로 새 댓글 입력칸을 연다. */
+		/** 누른 요소로 새 댓글 입력칸을 연다(댓글 폭 = 활성 보드 폭). */
 		pick(el, point) {
 			pending = { selector: selectorAt(null, el), path: elementPath(el), tag: el.tagName.toLowerCase(), point: { x: Math.round(point.x), y: Math.round(point.y) }, width: opts.width(), bundle: collectBundle(el, LIMITS) };
 			$('c-target').textContent = pending.selector;
@@ -89,12 +89,12 @@ export function createComments(opts) {
 			send.checked = true;
 			note.focus();
 		},
-		/** 표지용 목록(해결 안 된 댓글). */
+		/** 표지용 목록(해결 안 된 댓글). 요소는 댓글을 단 폭의 보드 문서에서 찾는다. */
 		markers() {
-			const d = opts.doc();
 			return items.map((c, i) => ({ c, i })).filter(({ c }) => c.status !== 'resolved').map(({ c, i }) => {
+				const d = opts.doc(c.width);
 				const el = d ? elementByPath(d, c.path) : null;
-				return { id: c.id, n: i + 1, note: c.note, el: el && el.tagName.toLowerCase() === c.tag ? el : null, point: c.point };
+				return { id: c.id, n: i + 1, w: c.width, note: c.note, el: el && el.tagName.toLowerCase() === c.tag ? el : null, point: c.point };
 			});
 		},
 		focus(id) {

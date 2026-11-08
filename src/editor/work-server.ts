@@ -52,11 +52,18 @@ function state(s: Session) {
 	};
 }
 
-/** 자동 저장 API. POST 는 Origin 이 작업 출처일 때만 받는다(CSP 위반 보고 제외). */
+/** 세션별로 이미 센 CSP 차단 주소. */
+const blockedSeen = new WeakMap<Session, Set<string>>();
+
+/** 자동 저장 API. POST 는 Origin 이 작업 출처일 때만 받는다(CSP 위반 보고 제외). 위반 보고는 아트보드가 여럿이라 같은 차단 주소를 한 번만 센다. */
 async function api(s: Session, req: IncomingMessage, res: ServerResponse, name: string): Promise<void> {
 	if (req.method === 'POST' && name === 'csp') {
-		await readJson(req).catch(() => null);
-		s.blocked++;
+		const body = await readJson(req).catch(() => null);
+		const uri = body?.['csp-report']?.['blocked-uri'];
+		const seen = blockedSeen.get(s) ?? new Set<string>();
+		blockedSeen.set(s, seen);
+		if (typeof uri !== 'string' || !seen.has(uri)) s.blocked++;
+		if (typeof uri === 'string') seen.add(uri);
 		return send(res, 204, '');
 	}
 	if (req.method === 'GET' && name === 'state') return sendJson(res, 200, state(s));

@@ -21,6 +21,7 @@ AstronDesign 은 아래 원본을 포함하거나 참고합니다. 원본 파일
 	- 하위 의존: entities 9.0.0(BSD-2-Clause, Copyright (c) Felix Böhm, https://github.com/fb55/entities). 라이선스 원문은 `node_modules/parse5/LICENSE`, `node_modules/entities/LICENSE` 에 있고 배포할 때 함께 둡니다.
 	- 판·무결성은 `package-lock.json` 에 고정합니다(parse5 `sha512-EcR/6WDc…`, entities `sha512-oJFNDJg3…`).
 - 캔버스·편집기 후보 GrapesJS(BSD-3-Clause)는 검토 뒤 쓰지 않았습니다(2026-11-08 마스터 결정, 근거 `docs/claude-design-parity-spec.md` 4.2절). tldraw 는 넣지 않습니다(G3).
+- 편집기 무한 캔버스(아트보드·이동·확대축소·점 격자)와 도구막대 아이콘(인라인 SVG 10개)은 자체 구현입니다. 새 npm 의존성·외부 글꼴·CDN 은 없습니다(2026-11-08, G2 "자체 구현", 근거 `docs/editor-canvas-design.md`). `package.json`·`package-lock.json` 은 바뀌지 않았습니다.
 
 ## 파생 파일
 

@@ -1,6 +1,6 @@
 // 렌더 검증 스크립트: src/server.ts 를 stdio 로 띄워 design_edit·design_render 를 MCP 와 같은 경로로 부르고 첫 줄·fold·report·차단 수를 출력한다.
 // 사용: node scripts/render.mjs <target> [--surface operate] [--widths 1440,390] [--expect-blocked 0]
-//       node scripts/render.mjs --edit <target> [--states "w=1440&sel=h1;w=390&mode=comment"] [--approve]
+//       node scripts/render.mjs --edit <target> [--states "w=1440&sel=h1;w=390&mode=comment"] [--viewports 1440,768,390] [--approve]
 // 종료코드: 0 정상, 1 예상과 다른 외부 요청 차단 수, 2 인자 오류.
 import { spawn } from 'node:child_process';
 import { readFileSync } from 'node:fs';
@@ -17,7 +17,7 @@ function usage(msg) {
 
 /** 인자를 읽는다. */
 function parseArgs(argv) {
-	const a = { target: null, edit: null, states: null, approve: false, surface: 'operate', widths: null, expect: 0 };
+	const a = { target: null, edit: null, states: null, approve: false, surface: 'operate', widths: null, viewports: [1440], expect: 0 };
 	for (let i = 0; i < argv.length; i++) {
 		const k = argv[i];
 		const val = () => (i + 1 < argv.length ? argv[++i] : usage(`${k} 값 없음`));
@@ -26,6 +26,7 @@ function parseArgs(argv) {
 		else if (k === '--approve') a.approve = true;
 		else if (k === '--surface') a.surface = val();
 		else if (k === '--widths') a.widths = val().split(',').map(Number);
+		else if (k === '--viewports') a.viewports = val().split(',').map(Number);
 		else if (k === '--expect-blocked') a.expect = Number(val());
 		else if (k.startsWith('--')) usage(`모르는 옵션 ${k}`);
 		else a.target = k;
@@ -33,6 +34,7 @@ function parseArgs(argv) {
 	if (!a.target && !a.edit) usage('target 또는 --edit <target> 이 필요합니다');
 	if (!SURFACES.has(a.surface)) usage(`surface 는 ${[...SURFACES].join('·')} 중 하나`);
 	if (a.widths && !a.widths.every((w) => Number.isInteger(w) && w >= 320 && w <= 2560)) usage('widths 는 320~2560 정수 목록');
+	if (!a.viewports.length || a.viewports.length > 4 || !a.viewports.every((w) => Number.isInteger(w) && w >= 320 && w <= 2560)) usage('viewports 는 320~2560 정수 1~4개');
 	if (!Number.isInteger(a.expect) || a.expect < 0) usage('--expect-blocked 는 0 이상 정수');
 	if (a.approve && process.env.ASTRONDESIGN_WRITE !== 'allow') usage('--approve 는 env ASTRONDESIGN_WRITE=allow 가 있어야 합니다');
 	return a;
@@ -116,11 +118,11 @@ try {
 		const work = /^편집기: (\S+)$/m.exec(text)?.[1];
 		if (!work) throw new Error(text.split('\n')[0]);
 		console.log(`editor: ${work}`);
-		for (const s of states) counts.push(await render(srv, s, { target: `${work}?${s}`, surface: 'operate', widths: [1440], wait_ms: 1500 }));
+		for (const s of states) counts.push(await render(srv, s, { target: `${work}?${s}`, surface: 'operate', widths: a.viewports, wait_ms: 1500 }));
 		if (a.approve) {
 			const approve = /^승인 주소: (\S+)$/m.exec(text)?.[1];
 			if (!approve) throw new Error('승인 주소 없음: env ASTRONDESIGN_WRITE=allow 확인');
-			counts.push(await render(srv, 'approve', { target: approve, surface: 'operate', widths: [1440], wait_ms: 1500 }));
+			counts.push(await render(srv, 'approve', { target: approve, surface: 'operate', widths: a.viewports, wait_ms: 1500 }));
 		}
 	} else counts.push(await render(srv, '', { target: a.target, surface: a.surface, ...(a.widths ? { widths: a.widths } : {}) }));
 	const total = counts.reduce((x, y) => x + Math.max(0, y), 0);

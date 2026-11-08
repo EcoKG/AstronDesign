@@ -2,7 +2,7 @@ import { test, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import { basename, join } from 'node:path';
-import { clip, outRoot, callDir } from '../../src/output.ts';
+import { clip, outRoot, callDir, redactSecrets, writeReport } from '../../src/output.ts';
 import { subEnv } from '../../src/config.ts';
 import { cleanup, makeProj } from '../helpers.ts';
 
@@ -62,4 +62,32 @@ test('O4 subEnv 허용 목록·홈 격리·텔레메트리·프록시', () => {
 	assert.deepEqual(Object.keys(env).filter((k) => !allowed.has(k)), []);
 	assert.ok(env.PATH && env.SYSTEMROOT, 'PATH·SYSTEMROOT 전달');
 	assert.equal(subEnv(out, { TASTE_SKILL_HISTORY: 'h.json' }).TASTE_SKILL_HISTORY, 'h.json');
+});
+
+test('OU1 redactSecrets 가 #64hex·/__astron/(api/)32hex 를 가리고 #intro·짧은 hex 는 남김', () => {
+	const tokB = 'ab'.repeat(32);
+	const tokA = '0f'.repeat(16);
+	const text = JSON.stringify({
+		approve: `http://127.0.0.1:5001/#${tokB}`,
+		work: `http://127.0.0.1:5000/__astron/${tokA}/?sel=h1`,
+		api: `/__astron/api/${tokA}/state`,
+		upper: `http://127.0.0.1:5001/#${tokB.toUpperCase()}`,
+		anchor: 'http://127.0.0.1:5000/index.html#intro',
+		shortHash: `#${'a'.repeat(63)}`,
+		shortPath: `/__astron/${'a'.repeat(31)}/`,
+		other: `/assets/${tokA}.js`
+	});
+	const out = redactSecrets(text);
+	assert.ok(!out.includes(tokB) && !out.toLowerCase().includes(tokB), out);
+	assert.ok(!out.includes(`/__astron/${tokA}`) && !out.includes(`/__astron/api/${tokA}`), out);
+	assert.match(out, /127\.0\.0\.1:5001\/#<redacted>/);
+	assert.match(out, /\/__astron\/<redacted>\/\?sel=h1/);
+	assert.match(out, /\/__astron\/api\/<redacted>\/state/);
+	for (const keep of ['#intro', `#${'a'.repeat(63)}`, `/__astron/${'a'.repeat(31)}/`, `/assets/${tokA}.js`]) assert.ok(out.includes(keep), keep);
+	const dir = callDir('design_render', makeProj());
+	const file = join(dir, 'report.json');
+	writeReport(file, { url: `http://127.0.0.1:5001/#${tokB}`, nested: { list: [`/__astron/${tokA}/`] } });
+	const saved = readFileSync(file, 'utf8');
+	assert.ok(!saved.includes(tokB) && !saved.includes(tokA), saved);
+	assert.deepEqual(JSON.parse(saved), { url: 'http://127.0.0.1:5001/#<redacted>', nested: { list: ['/__astron/<redacted>/'] } });
 });

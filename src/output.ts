@@ -66,3 +66,13 @@ export function ok(text: string, imageB64?: string): ToolResult {
 export function fail(code: ErrorCode, message: string): ToolResult {
 	return { isError: true, content: [{ type: 'text', text: clip(`ERROR ${code}: ${message}`) }] };
 }
+
+/** 산출 파일에 남으면 안 되는 토큰을 가린다: 승인 주소 해시(#64hex)와 작업 경로 토큰(/__astron/(api/)32hex). */
+export function redactSecrets(text: string): string {
+	return text.replace(/#[0-9a-f]{64}(?![0-9a-f])/gi, '#<redacted>').replace(/\/__astron\/(api\/)?[0-9a-f]{32}(?![0-9a-f])/g, (_m, api: string | undefined) => `/__astron/${api ?? ''}<redacted>`);
+}
+
+/** 보고 JSON 을 토큰을 가린 채 쓴다. 도구 결과 글은 승인 주소를 사람에게 전해야 하므로 가리지 않는다. */
+export function writeReport(file: string, data: unknown): void {
+	writeFileSync(file, redactSecrets(JSON.stringify(data, null, '\t')));
+}

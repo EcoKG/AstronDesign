@@ -98,7 +98,7 @@ test('AP7 승인 쓰기 → 백업·applied.json 기록, 원자 교체', async (
 	assert.equal(log[0].userAgent, 'astron-test');
 	assert.equal(log[0].files[0].rel, 'editor/index.html');
 	assert.equal(log[0].files[0].after, sha(file));
-	assert.deepEqual(readdirSync(join(file, '..')).sort(), ['chart.svg', 'external.html', 'hostile.html', 'index.html', 'react.html', 'script-made.html']);
+	assert.deepEqual(readdirSync(join(file, '..')).sort(), ['chart.svg', 'external.html', 'hostile.html', 'index.html', 'react.html', 'responsive.html', 'script-made.html']);
 	assert.equal(planApply(s).files.length, 0, '적용한 편집은 다시 계획되지 않음');
 });
 

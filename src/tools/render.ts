@@ -4,12 +4,12 @@ import { join } from 'node:path';
 import type { Page } from 'playwright-core';
 import * as z from 'zod';
 import { getBrowser, newContext, resolveTarget, scheduleIdle, type Blocked } from '../browser.ts';
-import { INLINE_B64_MAX, INLINE_IMAGE_DEFAULT, ToolError, callDir, defineTool, ok, type ToolResult } from '../output.ts';
+import { INLINE_B64_MAX, INLINE_IMAGE_DEFAULT, ToolError, callDir, defineTool, ok, redactSecrets, writeReport, type ToolResult } from '../output.ts';
 import { SURFACES, resolveFindings, type RawFinding, type Surface } from '../precedence.ts';
+import { boardHeight } from '../shared/boards.js';
 import { MOTION_RECORDER, tasteGate } from '../taste-gate.ts';
 import { allowContext, findingLine, headLine, runImpeccable } from './lint.ts';
 
-const HEIGHT: Record<number, number> = { 1440: 900, 1280: 800, 1024: 768, 768: 1024, 390: 844, 375: 812 };
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 /** 페이지 안에서 모든 styleSheets·adoptedStyleSheets 규칙을 longhand 로 모으고 못 읽은 시트를 센다. 중첩 규칙은 부모 선택자로 풀어 평면 규칙으로 쓴다. */
@@ -116,7 +116,7 @@ export async function renderTarget(a: z.infer<typeof renderSchema>): Promise<Too
 		const images: { width: number; fold: string; aria?: string }[] = [];
 		let dom: { path: string; unreadable: string[] } | null = null;
 		for (const w of widths) {
-			const h = HEIGHT[w] ?? Math.round(w * 0.625);
+			const h = boardHeight(w);
 			const start = blocked.length;
 			const ctx = await newContext(browser, w, h, tgt.allowNetwork, blocked);
 			try {
@@ -143,12 +143,12 @@ export async function renderTarget(a: z.infer<typeof renderSchema>): Promise<Too
 				const img: { width: number; fold: string; aria?: string } = { width: w, fold };
 				if (checks.has('a11y')) {
 					img.aria = join(dir, `aria-${w}.yml`);
-					writeFileSync(img.aria, await page.locator('body').ariaSnapshot());
+					writeFileSync(img.aria, redactSecrets(await page.locator('body').ariaSnapshot()));
 				}
 				if (w === widest && checks.has('impeccable') && !dom) {
 					const d = await inlineDom(page);
 					dom = { path: join(dir, 'dom.html'), unreadable: d.unreadable };
-					writeFileSync(dom.path, d.html);
+					writeFileSync(dom.path, redactSecrets(d.html));
 				}
 				images.push(img);
 				viewports.push({ width: w, height: h, load: 'load', screens, blocked: blocked.length - start, consoleErrors: consoleErrors.slice(0, 5) });
@@ -168,7 +168,7 @@ export async function renderTarget(a: z.infer<typeof renderSchema>): Promise<Too
 			blocked: uniq.map((b) => b.url), blockedMedia: uniq.filter((b) => b.type === 'image' || b.type === 'media').length
 		});
 		const report = join(dir, 'report.json');
-		writeFileSync(report, JSON.stringify({ tool: 'design_render', args: a, url: tgt.url, browser: via, viewports, images, blocked: uniq, dom: dom?.path, unreadable: dom?.unreadable ?? [], notes: ctxAllow.notes, ...resolved }, null, '\t'));
+		writeReport(report, { tool: 'design_render', args: a, url: tgt.url, browser: via, viewports, images, blocked: uniq, dom: dom?.path, unreadable: dom?.unreadable ?? [], notes: ctxAllow.notes, ...resolved });
 		const head = [headLine('design_render', resolved)];
 		if (uniq.length) head.push(`외부 자원 ${uniq.length}건 차단: 실제 화면과 다를 수 있음`);
 		if (dom?.unreadable.length) head.push(`CSS 미반영 ${dom.unreadable.length}: ${dom.unreadable.slice(0, 3).join(', ')}`);

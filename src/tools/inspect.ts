@@ -3,7 +3,7 @@ import { writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import * as z from 'zod';
 import { getBrowser, newContext, resolveTarget, scheduleIdle, type Blocked } from '../browser.ts';
-import { INLINE_B64_MAX, INLINE_IMAGE_DEFAULT, ToolError, callDir, defineTool, ok } from '../output.ts';
+import { INLINE_B64_MAX, INLINE_IMAGE_DEFAULT, ToolError, callDir, defineTool, ok, redactSecrets, writeReport } from '../output.ts';
 import { INTENT_IDS } from '../intents.ts';
 import { LIMITS, collectBundle, feedbackMd, selectorAt } from '../shared/dom-bundle.js';
 
@@ -69,9 +69,9 @@ export const inspectTool = defineTool({
 				}
 				const md = feedbackMd(a.target, `${w}x${h}`, items);
 				const feedback = join(dir, 'feedback.md');
-				writeFileSync(feedback, md);
+				writeFileSync(feedback, redactSecrets(md));
 				const report = join(dir, 'report.json');
-				writeFileSync(report, JSON.stringify({ tool: 'design_inspect', args: a, url: tgt.url, blocked, items }, null, '\t'));
+				writeReport(report, { tool: 'design_inspect', args: a, url: tgt.url, blocked, items });
 				const head = [`OK design_inspect: ${items.length}개 요소`];
 				if (blocked.length) head.push(`외부 자원 ${blocked.length}건 차단: 실제 화면과 다를 수 있음`);
 				head.push(...items.filter((it) => it.matches > 1).map((it) => `${it.selector}: ${it.matches}개 일치, 첫 요소 사용`));

@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>폭별 DOM 시험 페이지</title>
+<style>
+	body { margin: 0; font-family: system-ui, sans-serif; color: #1a1a1a; background: #ffffff; }
+	main { max-width: 960px; margin: 0 auto; padding: 48px 24px; }
+	h1 { font-size: 40px; line-height: 1.2; margin: 0 0 16px; }
+	.promo { padding: 16px; margin: 0 0 16px; border: 1px solid #8a8a8a; }
+	p { font-size: 18px; line-height: 1.6; margin: 0 0 16px; }
+</style>
+</head>
+<body>
+<main>
+	<h1>폭별 구성</h1>
+	<aside class="promo">넓은 화면에서만 보이는 안내</aside>
+	<p class="lead">모든 폭에 있는 문단입니다.</p>
+</main>
+<script>
+	// 좁은 화면(500px 미만)에서는 안내 요소를 지워 폭마다 DOM 이 달라지게 한다.
+	if (innerWidth < 500) document.querySelector('.promo').remove();
+</script>
+</body>
+</html>
