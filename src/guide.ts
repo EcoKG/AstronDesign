@@ -14,7 +14,7 @@ const topicName = (s: string) => s.toLowerCase().replace(/\.md$/, '').replace(/\
 function topics(): Map<string, string> {
 	if (cache) return cache;
 	const m = new Map<string, string>();
-	for (const g of ['index', 'workflow', 'precedence', 'critique']) m.set(g, join(ROOT, 'guides', `${g}.md`));
+	for (const g of ['index', 'workflow', 'precedence', 'critique', 'editor']) m.set(g, join(ROOT, 'guides', `${g}.md`));
 	m.set('brands', '@brands');
 	m.set('impeccable/skill', join(VENDOR, 'impeccable', 'SKILL.md'));
 	for (const f of readdirSync(join(VENDOR, 'impeccable', 'reference'))) m.set(`impeccable/${topicName(f)}`, join(VENDOR, 'impeccable', 'reference', f));

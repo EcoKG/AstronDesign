@@ -18,11 +18,14 @@ const BLACKHOLE = 'http://127.0.0.1:9';
 /** 호출 시점의 등록 env 를 읽는다. */
 export function settings() {
 	const idle = Number(process.env.ASTRONDESIGN_IDLE_MS);
+	const editorIdle = Number(process.env.ASTRONDESIGN_EDITOR_IDLE_MS);
 	return {
 		network: process.env.ASTRONDESIGN_NETWORK === 'allow',
+		write: process.env.ASTRONDESIGN_WRITE === 'allow',
 		python: process.env.ASTRONDESIGN_PYTHON || 'python',
 		browser: process.env.ASTRONDESIGN_BROWSER || undefined,
-		idleMs: Number.isFinite(idle) && idle > 0 ? idle : 120000
+		idleMs: Number.isFinite(idle) && idle > 0 ? idle : 120000,
+		editorIdleMs: Number.isFinite(editorIdle) && editorIdle > 0 ? editorIdle : 30 * 60 * 1000
 	};
 }
 

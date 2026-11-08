@@ -14,11 +14,13 @@
 		"test": "node --test --test-concurrency=1 \"test/unit/*.test.ts\" \"test/proto/*.test.ts\"",
 		"test:browser": "node --test --test-concurrency=1 \"test/browser/*.test.ts\"",
 		"vendor": "node scripts/vendor.mjs",
-		"smoke": "node scripts/smoke.mjs"
+		"smoke": "node scripts/smoke.mjs",
+		"render": "node scripts/render.mjs"
 	},
 	"dependencies": {
 		"@impeccable/cli-windows-x64": "0.1.15",
 		"@modelcontextprotocol/server": "2.3.1",
+		"parse5": "8.1.1",
 		"playwright-core": "1.63.0",
 		"zod": "4.6.7"
 	},

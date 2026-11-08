@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AstronDesign 원본 쓰기 승인</title>
+<link rel="stylesheet" href="/editor.css">
+<script type="module" src="/approve.js"></script>
+</head>
+<body class="approve">
+<main class="approve-main">
+	<h1>원본 쓰기 승인</h1>
+	<p id="target" class="muted"></p>
+	<p class="note">아래 diff 가 프로젝트 원본에 그대로 쓰입니다. 편집기 대상 페이지의 스크립트도 편집을 끼워 넣을 수 있으니, 직접 하지 않은 변경이 보이면 승인하지 마십시오.</p>
+	<section aria-labelledby="h-diff">
+		<h2 id="h-diff">바뀔 내용</h2>
+		<pre id="diff" data-loaded="0" tabindex="0" aria-label="바뀔 내용 diff"></pre>
+	</section>
+	<section aria-labelledby="h-skip">
+		<h2 id="h-skip">쓰지 않는 편집(에이전트에 넘겨주기 전용)</h2>
+		<ul id="skipped"></ul>
+	</section>
+	<div class="actions">
+		<button id="refresh" type="button">다시 계획</button>
+		<button id="approve" type="button" class="primary" disabled>승인하고 쓰기</button>
+	</div>
+	<pre id="result" role="status" data-done="0"></pre>
+</main>
+</body>
+</html>

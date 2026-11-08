@@ -8,7 +8,7 @@ export const TEXT_MAX = 3800;
 export const INLINE_IMAGE_DEFAULT = true;
 export const INLINE_B64_MAX = 350000;
 
-export type ErrorCode = 'E_INPUT' | 'E_PATH' | 'E_NOT_FOUND' | 'E_NETWORK_DISABLED' | 'E_BROWSER_UNAVAILABLE' | 'E_TIMEOUT' | 'E_ENGINE' | 'E_SELECTOR';
+export type ErrorCode = 'E_INPUT' | 'E_PATH' | 'E_NOT_FOUND' | 'E_NETWORK_DISABLED' | 'E_BROWSER_UNAVAILABLE' | 'E_TIMEOUT' | 'E_ENGINE' | 'E_SELECTOR' | 'E_WRITE_DISABLED' | 'E_CONFLICT' | 'E_SESSION';
 type Content = { type: 'text'; text: string } | { type: 'image'; data: string; mimeType: string };
 export type ToolResult = { content: Content[]; isError?: boolean };
 

@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AstronDesign 편집기</title>
+<link rel="stylesheet" href="editor.css">
+<script type="module" src="app.js"></script>
+</head>
+<body data-ready="0">
+<header class="topbar">
+	<span class="brand">AstronDesign</span>
+	<span id="target-name" class="target"></span>
+	<div id="boards" class="seg" role="group" aria-label="보드 폭"></div>
+	<div class="seg" role="group" aria-label="배율">
+		<button id="zoom-out" type="button" aria-label="축소">−</button>
+		<span id="zoom-label" class="zoom-label" aria-live="polite">100%</span>
+		<button id="zoom-in" type="button" aria-label="확대">+</button>
+		<button id="zoom-fit" type="button">맞춤</button>
+	</div>
+	<div class="seg" role="group" aria-label="모드">
+		<button id="mode-edit" type="button" aria-pressed="true">편집</button>
+		<button id="mode-comment" type="button" aria-pressed="false">댓글</button>
+	</div>
+	<div class="seg" role="group" aria-label="기록">
+		<button id="undo" type="button" disabled>되돌리기</button>
+		<button id="redo" type="button" disabled>다시 하기</button>
+	</div>
+	<span class="spacer"></span>
+	<span id="open-count" class="pill">열린 댓글 0</span>
+	<span id="blocked" class="pill" title="대상 CSP 가 막은 외부 요청 수">차단 0건</span>
+	<span id="save-state" class="pill" data-state="idle" role="status">저장할 편집 없음</span>
+	<span id="applied" class="pill applied" role="status" hidden></span>
+	<span id="apply-slot"></span>
+</header>
+<nav id="layers-panel" class="panel" aria-labelledby="layers-title">
+	<h2 id="layers-title">레이어</h2>
+	<ul id="layers" role="tree" aria-labelledby="layers-title"></ul>
+</nav>
+<main id="canvas" aria-label="캔버스">
+	<div id="stage">
+		<div id="scaler">
+			<iframe id="frame" name="target" title="편집 대상 화면"></iframe>
+			<div id="hit"></div>
+		</div>
+	</div>
+	<div id="overlay" aria-hidden="true">
+		<div id="hover-box"></div>
+		<div id="sel-box" hidden><span class="tag"></span><span class="handle"></span></div>
+		<div id="markers"></div>
+	</div>
+	<p id="warnings" class="warnings" role="alert" hidden></p>
+</main>
+<aside id="side" class="panel" aria-label="속성과 댓글">
+	<section id="props" aria-labelledby="props-title">
+		<h2 id="props-title">속성</h2>
+		<p id="p-empty" class="muted">캔버스나 레이어에서 요소를 고르십시오.</p>
+		<form id="p-form" hidden>
+			<p id="p-selector" class="selector"></p>
+			<label class="field" id="p-text-field">글자<textarea id="p-text" rows="2"></textarea></label>
+			<div class="row2">
+				<label class="field">글자색<input id="p-color" type="color"></label>
+				<label class="field">배경<input id="p-background-color" type="color"></label>
+			</div>
+			<p id="contrast" class="contrast" aria-live="polite"></p>
+			<div class="row2">
+				<label class="field">글자 크기<input id="p-font-size" type="text" inputmode="decimal"></label>
+				<label class="field">굵기<select id="p-font-weight"><option>400</option><option>500</option><option>600</option><option>700</option><option>800</option></select></label>
+			</div>
+			<div class="row2">
+				<label class="field">너비<input id="p-width" type="text"></label>
+				<label class="field">높이<input id="p-height" type="text"></label>
+			</div>
+			<label class="field">이동(translate)<input id="p-translate" type="text" placeholder="0px 0px"></label>
+			<div class="seg align" role="group" aria-label="글자 정렬">
+				<button type="button" data-align="left">왼쪽</button>
+				<button type="button" data-align="center">가운데</button>
+				<button type="button" data-align="right">오른쪽</button>
+			</div>
+		</form>
+	</section>
+	<section id="comments" aria-labelledby="comments-title" hidden>
+		<h2 id="comments-title">모든 댓글</h2>
+		<p class="muted">캔버스에서 고칠 곳을 누르면 그 요소에 댓글이 달립니다.</p>
+		<form id="c-form" hidden>
+			<p id="c-target" class="selector"></p>
+			<label class="field">의도<select id="c-intent"></select></label>
+			<label class="field">댓글<textarea id="c-note" rows="3" maxlength="2000"></textarea></label>
+			<label class="check"><input id="c-send" type="checkbox" checked>에이전트에 보내기</label>
+			<div class="actions">
+				<button id="c-cancel" type="button">취소</button>
+				<button id="c-save" type="button" class="primary">댓글 달기</button>
+			</div>
+		</form>
+		<ul id="comment-list"></ul>
+	</section>
+</aside>
+</body>
+</html>
