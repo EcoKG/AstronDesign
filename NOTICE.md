@@ -17,6 +17,10 @@ AstronDesign 은 아래 원본을 포함하거나 참고합니다. 원본 파일
 
 - @modelcontextprotocol/server 2.3.1, zod 4.6.7, playwright-core 1.63.0(Apache-2.0)
 - @impeccable/cli-windows-x64 0.1.15(Apache-2.0, impeccable 엔진 바이너리, `detect --json` 만 호출)
+- parse5 8.1.1(MIT, Copyright (c) 2013-2019 Ivan Nikulin, https://github.com/inikulin/parse5): 편집기 원본 쓰기 기록기 `src/editor/writers/html-static.ts` 가 정적 HTML 의 원본 위치(`sourceCodeLocationInfo`)를 읽는 데 씁니다. 2026-11-08 `npm install --save-exact parse5@8.1.1` 로 추가.
+	- 하위 의존: entities 9.0.0(BSD-2-Clause, Copyright (c) Felix Böhm, https://github.com/fb55/entities). 라이선스 원문은 `node_modules/parse5/LICENSE`, `node_modules/entities/LICENSE` 에 있고 배포할 때 함께 둡니다.
+	- 판·무결성은 `package-lock.json` 에 고정합니다(parse5 `sha512-EcR/6WDc…`, entities `sha512-oJFNDJg3…`).
+- 캔버스·편집기 후보 GrapesJS(BSD-3-Clause)는 검토 뒤 쓰지 않았습니다(2026-11-08 마스터 결정, 근거 `docs/claude-design-parity-spec.md` 4.2절). tldraw 는 넣지 않습니다(G3).
 
 ## 파생 파일
 
@@ -26,4 +30,4 @@ AstronDesign 은 아래 원본을 포함하거나 참고합니다. 원본 파일
 
 ## 동작 참고(코드 미포함)
 
-- 동작 참고: stablyai/orca v1.4.188 Design Mode(MIT, Lovecast Inc.). 요소 묶음 필드·수집 상한·계산 스타일 16개·시크릿 가림·"## Design Feedback" 형식을 참고해 `src/tools/inspect.ts` 에 새로 구현했습니다.
+- 동작 참고: stablyai/orca v1.4.188 Design Mode(MIT, Lovecast Inc.). 요소 묶음 필드·수집 상한·계산 스타일 16개·시크릿 가림·"## Design Feedback" 형식을 참고해 새로 구현했습니다. 코드는 `src/shared/dom-bundle.js`(design_inspect 와 편집기 댓글이 함께 씀)에 있습니다.

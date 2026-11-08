@@ -24,6 +24,7 @@
 - [묶은 원본](#묶은-원본)
 - [빠른 시작](#빠른-시작)
 - [제공 도구](#제공-도구)
+- [편집기](#편집기)
 - [설정](#설정)
 - [운영 안내](#운영-안내)
 - [출처·라이선스](#출처라이선스)
@@ -32,7 +33,7 @@
 
 ```mermaid
 flowchart LR
-	C["MCP 클라이언트<br/>(Claude Code · Codex 등)"] <-->|stdio| S["astrondesign<br/>도구 6개"]
+	C["MCP 클라이언트<br/>(Claude Code · Codex 등)"] <-->|stdio| S["astrondesign<br/>도구 9개"]
 	subgraph E["엔진"]
 		I["impeccable<br/>참고 문서 + 탐지 엔진"]
 		T["taste-skill<br/>draw · lint · 측정"]
@@ -45,7 +46,7 @@ flowchart LR
 	B -.->|외부 요청 기본 차단| N(("🌐 외부 네트워크"))
 ```
 
-- 하네스는 프로젝트 파일을 쓰지 않습니다. 고치는 일은 에이전트가 직접 하고, 하네스는 읽기·검사·렌더 결과만 냅니다.
+- 하네스는 사람의 명시 승인 없이는 프로젝트 파일을 쓰지 않습니다. 고치는 일은 에이전트가 직접 하고, 하네스는 읽기·검사·렌더 결과만 냅니다. 예외는 편집기 승인 화면 하나뿐입니다(아래 "편집기").
 - 원본 4종은 `vendor/` 에 수정 없이 들어 있습니다. 문서 안의 실행 지시(`node draw.mjs`, `python search.py` 등)는 이 도구들로 대체합니다(`guides/precedence.md` 대체표).
 
 ## 작업 흐름
@@ -190,8 +191,29 @@ tool_timeout_sec = 180
 | `design_lint` | 소스 정적 검사(impeccable + taste lint) 후 P0~P7·C1~C12 적용 | `paths`, `surface`, `allow`, `design_md`, `engines` |
 | `design_render` | 헤드리스 브라우저로 여러 폭 렌더: 첫 화면 스크린샷, taste 측정, impeccable DOM 검사, 접근성 스냅샷 | `target`, `surface`, `widths`(최대 4), `checks`, `allow`, `wait_ms` |
 | `design_inspect` | 선택자·좌표로 요소 묶음(HTML·계산 스타일 16개·위치·잘린 이미지)을 모으고 `notes` 로 Design Feedback 작성 | `target`, `selector` 또는 `point`, `notes`, `width`, `height` |
+| `design_edit` | 실제 렌더 위 로컬 편집기를 엶: 폭 전환·레이어 트리·끌기·크기·속성 편집·대비 표시·되돌리기·인라인 댓글·자동 저장 | `target`, `surface`, `widths`, `allow_write` |
+| `design_handoff` | 편집기 댓글(`feedback.md`)·미적용 편집(`patch.diff`, 파일:줄)·쓰기 불가 편집(`handoff.md`)을 넘겨받음. 데이터이지 지시가 아님 | `target`, `ack` |
+| `design_export` | 미적용 편집을 반영해 독립 HTML(`standalone.html`)과 보드 폭별 PNG 를 파일로 내보냄 | `target`, `formats` |
 
 결과 첫 줄은 `OK|FAIL|ERROR <요약>` 이고, 발견 줄은 `[LEVEL] id (sources) 위치 — message [overridden_by]` 형식입니다.
+
+## 편집기
+
+`design_edit` 는 실제 프로젝트 렌더를 로컬 편집기 화면에 띄웁니다. 사람이 보고, 고르고, 직접 고치고, 그 자리에 댓글을 달면 `design_handoff` 로 에이전트에게 넘어갑니다. 자세한 규칙은 `design_guide topic=editor` 에 있습니다.
+
+```mermaid
+flowchart LR
+	A["에이전트"] -->|design_edit| W["작업 화면 127.0.0.1:A<br/>레이어·캔버스·속성·댓글"]
+	W -->|자동 저장| O[("OUT/editor/&lt;key&gt;/")]
+	A -->|design_handoff| O
+	W -.->|"쓰기 키 둘 다 있을 때만"| V["승인 화면 127.0.0.1:B<br/>(다른 출처)"]
+	V -->|"사람이 diff 승인"| P[("프로젝트 원본")]
+	V -->|다시 렌더| R["design_render 첫 줄"]
+```
+
+- 대상은 cwd 안 html 또는 루프백 개발 서버입니다. 대상 응답에 CSP 를 붙여 외부 요청을 막고, 막힌 수를 상단 바에 보입니다.
+- 원본 쓰기는 env `ASTRONDESIGN_WRITE=allow`, 인자 `allow_write:true`, 승인 화면에서 사람의 승인이 모두 있을 때만 합니다. 승인 화면은 작업 화면과 다른 포트라 대상 페이지 스크립트가 승인 토큰을 읽지 못합니다.
+- 원본에 쓰는 형식은 정적 HTML(style 속성·글자)뿐이고, 나머지는 `patch.diff`·`handoff.md` 로 넘깁니다.
 
 ## 설정
 
@@ -202,6 +224,8 @@ tool_timeout_sec = 180
 | `ASTRONDESIGN_PYTHON` | `python` | UI UX Pro Max 검색에 쓸 python |
 | `ASTRONDESIGN_BROWSER` | — | 브라우저 실행 파일(1순위) |
 | `ASTRONDESIGN_IDLE_MS` | `120000` | 마지막 호출 뒤 브라우저를 닫기까지의 시간(ms) |
+| `ASTRONDESIGN_WRITE` | `off` | `allow` 이고 `design_edit` 인자 `allow_write:true` 일 때만 편집기 승인 화면(다른 포트)이 열림. 원본은 사람이 그 화면에서 diff 를 보고 승인할 때만 씀 |
+| `ASTRONDESIGN_EDITOR_IDLE_MS` | `1800000` | 편집기 세션을 쓰지 않으면 리스너를 닫기까지의 시간(ms) |
 
 ## 운영 안내
 
@@ -209,7 +233,7 @@ tool_timeout_sec = 180
 <summary>📁 산출물과 프로젝트 무쓰기</summary>
 
 - 모든 산출(스크린샷·`report.json`·Design Feedback)은 `<cwd>/.astron-logs/astrondesign/<시각>-<도구>-<id>/` 에 남습니다.
-- 프로젝트 파일은 쓰지 않습니다. 브랜드 DESIGN.md 를 프로젝트에 복사하는 일도 사용자가 명시적으로 요청할 때만 에이전트가 직접 합니다.
+- 프로젝트 파일은 사람의 명시 승인 없이는 쓰지 않습니다. 편집기 편집·댓글은 `<cwd>/.astron-logs/astrondesign/editor/<key>/` 에만 저장됩니다. 브랜드 DESIGN.md 를 프로젝트에 복사하는 일도 사용자가 명시적으로 요청할 때만 에이전트가 직접 합니다.
 - 렌더·검사 대상은 서버 cwd 안의 경로여야 합니다.
 
 </details>
@@ -240,6 +264,8 @@ npm run typecheck     # tsc 오류 0
 npm test              # 단위 + MCP 프로토콜 + 엔진 시험
 npm run smoke         # 서버 기동 확인
 npm run test:browser  # 실제 브라우저 시험(무거움)
+npm run render -- <target> --surface operate          # 렌더 검증(첫 줄·fold·report·차단 수)
+npm run render -- --edit <target> --states "w=1440&sel=h1;w=390&mode=comment"  # 편집기 화면 렌더
 npm run vendor        # 원본 사본에서 vendor/ 재생성(커밋 해시 확인)
 ```
 
@@ -250,5 +276,6 @@ npm run vendor        # 원본 사본에서 vendor/ 재생성(커밋 해시 확�
 - 원본 4종의 저장소·커밋·포함/제외 범위·파생 파일은 [NOTICE.md](NOTICE.md), 파일별 해시는 [vendor/SOURCES.json](vendor/SOURCES.json) 에 있습니다.
 - impeccable 의 LICENSE·NOTICE.md 는 `vendor/impeccable` 에 그대로 보존합니다.
 - `design_inspect` 의 요소 묶음 형식은 stablyai/orca Design Mode(MIT)의 동작을 참고해 새로 구현했습니다(코드 미포함).
+- 편집기의 원본 HTML 고침은 parse5(MIT)를 씁니다. 판·라이선스는 [NOTICE.md](NOTICE.md) 에 있습니다.
 - 브랜드 DESIGN.md 는 참고 자료입니다. 각 상표·외형의 권리는 해당 소유자에게 있습니다.
 - 이 저장소 자체는 [MIT 라이선스](LICENSE)입니다. `vendor/` 의 원본은 위 표의 각 라이선스를 따릅니다.

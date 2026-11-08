@@ -1,6 +1,6 @@
 # 작업 흐름(S1~S7)
 
-읽기 전용 노드(진단·충실도 검토·시각 QA 등 research·plan·review)는 S1·S2·S4·S5·S7 만 합니다. 쓰기 노드(디자인 엔지니어, impl)는 전 단계를 합니다. 하네스는 프로젝트 파일을 쓰지 않으므로 수정은 쓰기 노드의 에이전트가 직접 합니다.
+읽기 전용 노드(진단·충실도 검토·시각 QA 등 research·plan·review)는 S1·S2·S4·S5·S7 만 합니다. 쓰기 노드(디자인 엔지니어, impl)는 전 단계를 합니다. 하네스는 사람의 명시 승인 없이는 프로젝트 파일을 쓰지 않으므로 수정은 쓰기 노드의 에이전트가 직접 합니다. 사람이 화면에서 직접 고치거나 댓글을 다는 흐름은 `design_guide topic=editor` 를 봅니다.
 
 | 단계 | 할 일 | 도구 |
 |---|---|---|
@@ -8,7 +8,7 @@
 | S2 방향 | persuade 면 design_direction(DESIGN.md 에 색·서체가 있으면 `keep`). operate·read·experience 면 design_search(`design_system: true`). 브랜드 참고는 design_guide(`brand/<이름>`)로 읽기만 합니다 | design_direction, design_search, design_guide |
 | S3 구현 | 쓰기 노드만 합니다. UI 를 고치기 전에 `impeccable/craft-floor` 를 읽습니다. 프로젝트 파일은 에이전트가 직접 고칩니다 | design_guide |
 | S4 검사 | 정적 검사 design_lint 다음에 design_render 를 부릅니다 | design_lint, design_render |
-| S5 비평 | 스크린샷을 보고 `critique` 규약으로 단일 에이전트 비평을 합니다(결과에 DEGRADED(single-agent) 표기). 요소 지적은 design_inspect 의 `notes` 로 Design Feedback 파일을 만듭니다 | design_guide, design_inspect |
+| S5 비평 | 스크린샷을 보고 `critique` 규약으로 단일 에이전트 비평을 합니다(결과에 DEGRADED(single-agent) 표기). 요소 지적은 design_inspect 의 `notes` 로 Design Feedback 파일을 만듭니다. 사람의 화면 댓글·직접 편집은 design_edit → design_handoff 로 받습니다 | design_guide, design_inspect, design_edit, design_handoff |
 | S6 수정 | FAIL 상위 3개를 고치고 S4·S5 를 반복합니다. 최대 3회 | — |
 | S7 보고 | FAIL·WARN·INFO 표(우선순위가 적용된 결과), 산출물 경로, 남은 충돌(`conflict: true`, 사람 결정 필요)을 적습니다 | — |
 
