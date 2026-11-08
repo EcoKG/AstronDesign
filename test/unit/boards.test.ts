@@ -43,3 +43,14 @@ test('BD3 보드 이름표 글: 자리 150 이상 전체, 96 이상 이름·폭,
 	assert.equal(boardTag(1440, 0), '데스크톱');
 	assert.equal(boardTag(390, -10), '모바일', '음수 자리도 이름은 남김');
 });
+
+test('BD4 첫 보기: 빈 보드 목록이면 활성 없이 모든 보드 맞춤, fitOf 를 부르지 않음', () => {
+	const fitOf = () => assert.fail('fitOf 호출');
+	const base = { widths: [], requested: null, overview: 0.1, fitOf, viewport: 390 };
+	const empty = { active: null, fit: 'all' };
+	assert.deepEqual(initialView(base), empty);
+	assert.deepEqual(initialView({ ...base, requested: 1440 }), empty, '목록에 없는 ?w');
+	assert.deepEqual(initialView({ ...base, overview: 0 }), empty, '배율 0');
+	assert.deepEqual(initialView({ ...base, overview: Number.NaN }), empty, '배율 NaN');
+	assert.deepEqual(initialView({ ...base, overview: 1 }), empty, '배율 1');
+});

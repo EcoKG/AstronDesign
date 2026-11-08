@@ -51,11 +51,12 @@ export const READ_MIN = 0.5;
 /**
  * 편집기 첫 보기. 유효한 ?w 가 있으면 그 보드 맞춤.
  * 없으면 모든 보드 맞춤 배율 ≥ OVERVIEW_MIN 일 때 모든 보드, 첫 보드 맞춤 배율 ≥ READ_MIN 일 때 첫 보드,
- * 그 밖에는 화면 폭에 가장 가까운 보드(같은 거리면 좁은 쪽)에 맞춘다.
+ * 그 밖에는 화면 폭에 가장 가까운 보드(같은 거리면 좁은 쪽)에 맞춘다. 보드가 없으면 활성 없이 모든 보드 맞춤.
  * @param {{ widths: number[], requested: number | null, overview: number, fitOf: (w: number) => number, viewport: number }} a
- * @returns {{ active: number, fit: 'all' | 'board' }}
+ * @returns {{ active: number | null, fit: 'all' | 'board' }}
  */
 export function initialView(a) {
+	if (a.widths.length === 0) return { active: null, fit: 'all' };
 	if (a.requested !== null && a.widths.includes(a.requested)) return { active: a.requested, fit: 'board' };
 	const first = a.widths[0];
 	if (a.overview >= OVERVIEW_MIN) return { active: first, fit: 'all' };
