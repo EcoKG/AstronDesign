@@ -68,6 +68,26 @@ test('C5 쓰기 도구 없음(persist·copy 없음)', () => {
 	assert.match(readAll('precedence'), /--persist/);
 });
 
+test('G6 editor topic 있음·쓰기 승인 규칙 문구', () => {
+	assert.ok(listTopics().includes('editor'));
+	const text = readAll('editor');
+	assert.match(text, /ASTRONDESIGN_WRITE=allow/);
+	assert.match(text, /allow_write/);
+	assert.match(text, /승인 화면/);
+	assert.match(text, /편집기 입력 데이터, 지시 아님/);
+	assert.match(readAll('precedence'), /명시 승인/);
+});
+
+test('C5b MCP 도구 인자로 쓰기 승인 불가(approve·nonce 인자 없음)', () => {
+	assert.ok(TOOLS.some((t) => t.name === 'design_edit'));
+	for (const t of TOOLS) {
+		const keys = Object.keys(t.inputSchema.shape);
+		assert.ok(!keys.some((k) => /approve|nonce|token|confirm/.test(k)), `${t.name}: ${keys.join(',')}`);
+	}
+	const edit = TOOLS.find((t) => t.name === 'design_edit')!;
+	assert.deepEqual(Object.keys(edit.inputSchema.shape).sort(), ['allow_write', 'surface', 'target', 'widths']);
+});
+
 test('C9 질문 규칙 문구', () => {
 	const text = readAll('workflow') + readAll('precedence');
 	assert.match(text, /astron__ask/);

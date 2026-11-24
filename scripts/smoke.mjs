@@ -35,7 +35,7 @@ try {
 	console.log(`tools(${list.result.tools.length}): ${list.result.tools.map((t) => t.name).join(', ')}`);
 	console.log(`tools/list json: ${JSON.stringify(list.result).length} chars, start→list ${ms}ms`);
 	console.log(`design_guide: ${guide.result.content[0].text.split('\n')[0]}`);
-	const good = list.result.tools.length === 6 && !guide.result.isError;
+	const good = list.result.tools.length === 9 && !guide.result.isError;
 	console.log(good ? 'OK' : 'FAIL');
 	process.exitCode = good ? 0 : 1;
 } catch (e) {

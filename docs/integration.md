@@ -56,7 +56,7 @@ claude mcp add astrondesign --scope user `
 }
 ```
 
-등록 뒤 세션 안에서 `/mcp` 로 연결 상태와 도구 6개를 확인합니다.
+등록 뒤 세션 안에서 `/mcp` 로 연결 상태와 도구 9개를 확인합니다. 편집기 원본 쓰기 승인을 쓰려면 `env` 에 `"ASTRONDESIGN_WRITE": "allow"` 를 더합니다(기본은 꺼짐).
 
 ## 4. Codex
 

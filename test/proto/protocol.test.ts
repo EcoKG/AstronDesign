@@ -11,11 +11,11 @@ test('P1 initialize 2025-11-25', async () => {
 	assert.ok(c.init?.result?.capabilities?.tools);
 });
 
-test('P2 도구 6개·이름 정규식·37자·설명 300자·tools/list 6,000자 이하·outputSchema 없음', async () => {
+test('P2 도구 9개·이름 정규식·37자·설명 300자·tools/list 6,000자 이하·outputSchema 없음', async () => {
 	const c = await startServer(makeProj());
 	const r = await c.request('tools/list');
 	const tools = r.result.tools as { name: string; description: string; outputSchema?: unknown }[];
-	assert.deepEqual(tools.map((t) => t.name).sort(), ['design_direction', 'design_guide', 'design_inspect', 'design_lint', 'design_render', 'design_search']);
+	assert.deepEqual(tools.map((t) => t.name).sort(), ['design_direction', 'design_edit', 'design_export', 'design_guide', 'design_handoff', 'design_inspect', 'design_lint', 'design_render', 'design_search']);
 	for (const t of tools) {
 		assert.match(t.name, /^design_[a-z_]+$/);
 		assert.ok(t.name.length <= 37, t.name);
@@ -54,7 +54,7 @@ test('P6 기동~tools/list 2,000ms 이내', async () => {
 	const c = await startServer(makeProj());
 	const r = await c.request('tools/list');
 	const ms = Date.now() - t0;
-	assert.equal(r.result.tools.length, 6);
+	assert.equal(r.result.tools.length, 9);
 	assert.ok(ms <= 2000, `${ms}ms`);
 });
 

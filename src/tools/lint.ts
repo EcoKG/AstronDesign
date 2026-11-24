@@ -4,7 +4,7 @@ import { join, relative, resolve } from 'node:path';
 import * as z from 'zod';
 import { IMPECCABLE_BIN, TASTE_SCRIPTS, assertRan, engineError, runSub, subEnv } from '../config.ts';
 import { ToolError, callDir, defineTool, ok, outRoot } from '../output.ts';
-import { insideCwd } from '../paths.ts';
+import { insideCwd, lintTargets } from '../paths.ts';
 import { SURFACES, resolveFindings, type Finding, type RawFinding, type Resolved, type Surface } from '../precedence.ts';
 import { deriveAllow, probeTokenColours, readTokens } from '../tokens.ts';
 
@@ -84,7 +84,7 @@ export const lintTool = defineTool({
 	}),
 	handler: async (a) => {
 		const cwd = process.cwd();
-		const targets = a.paths.map((p) => insideCwd(p, cwd));
+		const targets = lintTargets(a.paths, cwd);
 		const dir = callDir('design_lint');
 		const engines = a.engines ?? ['impeccable', 'taste'];
 		const raw: RawFinding[] = [];

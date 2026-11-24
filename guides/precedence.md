@@ -23,7 +23,7 @@ P3 하한: P1·P2 의 allow 가 있어도 낮추지 않습니다. 대신 `confli
 | C2 금지 강도 | persuade 에서는 taste FAIL 유지. impeccable 은 slop 범주 → WARN, 하한 id → FAIL, 그 밖 quality → WARN |
 | C3 브리프 우선 | P1 allow > P2 토큰 allow > 방향 시트 allow > taste "Adopt it". overridden_by 에는 먼저 맞은 원천 하나만 적음. 시트 allow 는 taste 출처에만 적용 |
 | C4 범위 | persuade: impeccable+taste+UUPM. operate·read·experience: impeccable+UUPM. design_lint 는 taste lint 를 늘 실행하되 persuade 가 아니면 버리고 `surface-skipped` 로 셈. design_render 의 taste-gate 는 persuade 에서만 실행 |
-| C5 원천 파일 | 진실 원천은 프로젝트 DESIGN.md 하나. 하네스는 프로젝트에 쓰지 않음(`--persist`·복사 없음) |
+| C5 원천 파일 | 진실 원천은 프로젝트 DESIGN.md 하나. 하네스는 사람의 명시 승인 없이는 프로젝트에 쓰지 않음(`--persist`·복사 없음). 예외는 편집기 승인 화면 하나뿐(`editor` 문서) |
 | C6 서체 | DESIGN.md 의 fontFamily 와 정규화 후 완전 일치하는 글꼴 발견은 INFO |
 | C7 mono·hairline | 토큰에 mono 글꼴이나 hairline·divider·rule·border 키가 있으면 허용. 없으면 persuade 는 taste FAIL |
 | C8 그라디언트·글래스 | 토큰 키 gradient → gradient 허용, glass·blur → glass 허용, 보라 색 토큰 → palette-purple 허용. gradient-text 는 허용 안 함 |
