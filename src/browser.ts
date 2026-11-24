@@ -4,7 +4,7 @@ import { join } from 'node:path';
 import type { Browser, BrowserContext } from 'playwright-core';
 import { settings } from './config.ts';
 import { ToolError } from './output.ts';
-import { insideCwd, serveStatic } from './paths.ts';
+import { insideCwd, serveStatic, targetRoot } from './paths.ts';
 
 export type Blocked = { url: string; type: string }[];
 export type Target = { url: string; external: boolean; close: () => Promise<void> };
@@ -84,7 +84,7 @@ export async function newContext(b: Browser, width: number, height: number, allo
 	return ctx;
 }
 
-/** 대상(http(s) URL 또는 cwd 안 html)을 브라우저가 열 URL 로 바꾼다. 파일은 127.0.0.1 임시 서버로 제공. */
+/** 대상(http(s) URL 또는 허용 루트 안 html)을 브라우저가 열 URL로 바꾼다. */
 export async function resolveTarget(target: string, allowNetworkArg: boolean | undefined, cwd = process.cwd()): Promise<Target & { allowNetwork: boolean }> {
 	const allowNetwork = settings().network && allowNetworkArg === true;
 	if (/^https?:\/\//i.test(target)) {
@@ -94,6 +94,6 @@ export async function resolveTarget(target: string, allowNetworkArg: boolean | u
 	}
 	let file = insideCwd(target, cwd);
 	if (statSync(file).isDirectory()) file = insideCwd(join(target, 'index.html'), cwd);
-	const srv = await serveStatic(cwd, file);
+	const srv = await serveStatic(targetRoot(file, cwd), file);
 	return { url: srv.url, external: false, allowNetwork, close: srv.close };
 }
